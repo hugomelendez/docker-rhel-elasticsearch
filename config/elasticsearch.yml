@@ -10,3 +10,10 @@ discovery:
 path:
   data: /elasticsearch/persistent/elasticsearch/data
   logs: /elasticsearch/logs
+action.auto_create_index: .monitoring*,.watches,.triggered_watches,.watcher-history*,.ml*
+
+xpack:
+  monitoring:
+    elasticsearch.collection.enabled: "true"
+    collection.enabled: true
+
