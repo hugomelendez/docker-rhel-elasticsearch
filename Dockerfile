@@ -32,7 +32,7 @@ RUN yum install -y --setopt=tsflags=nodocs \
   elasticsearch-${ES_VER} && \
   yum clean all
 
-#COPY install.sh ${HOME}/
+COPY install.sh ${HOME}/
 COPY config/* ${ES_PATH_CONF}/
 RUN ${HOME}/install.sh && \
   rm ${HOME}/*
