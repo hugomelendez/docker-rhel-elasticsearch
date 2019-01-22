@@ -17,7 +17,6 @@ ENV ES_CLOUD_K8S_VER=${ES_VERSION} \
   NODE_QUORUM=1 \
   ES_CLUSTER_SERVICE=elasticsearch-cluster
 
-
 LABEL io.k8s.description="Elasticsearch container" \
   io.k8s.display-name="Elasticsearch ${ES_VER}" \
   io.openshift.expose-services="9200:https, 9300:https" \
@@ -35,9 +34,8 @@ RUN yum install -y --setopt=tsflags=nodocs \
 
 #COPY install.sh ${HOME}/
 COPY config/* ${ES_PATH_CONF}/
-#RUN ${HOME}/install.sh && \
-#  rm ${HOME}/*
-RUN rm ${HOME}/*
+RUN ${HOME}/install.sh && \
+  rm ${HOME}/*
 
 WORKDIR ${HOME}
 USER 999
