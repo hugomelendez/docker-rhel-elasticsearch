@@ -1,4 +1,4 @@
-FROM rhel7:7.3
+FROM registry.access.redhat.com/rhel7:7.6
 
 MAINTAINER OpenShift Development <dev@lists.openshift.redhat.com>
 
@@ -6,37 +6,38 @@ EXPOSE 9200
 EXPOSE 9300
 USER 0
 
-ARG ES_VERSION=6.2.2
+ARG ES_VERSION=6.5.4
 
 ENV ES_CLOUD_K8S_VER=${ES_VERSION} \
-    ES_PATH_CONF=/etc/elasticsearch \
-    ES_HOME=/usr/share/elasticsearch \
-    ES_VER=${ES_VERSION} \
-    HOME=/opt/app-root/src \
-    JAVA_VER=1.8.0 \
-    NODE_QUORUM=1 \
-    ES_CLUSTER_SERVICE=elasticsearch-cluster
+  ES_PATH_CONF=/etc/elasticsearch \
+  ES_HOME=/usr/share/elasticsearch \
+  ES_VER=${ES_VERSION} \
+  HOME=/opt/app-root/src \
+  JAVA_VER=1.8.0 \
+  NODE_QUORUM=1 \
+  ES_CLUSTER_SERVICE=elasticsearch-cluster
 
 
 LABEL io.k8s.description="Elasticsearch container" \
-      io.k8s.display-name="Elasticsearch ${ES_VER}" \
-      io.openshift.expose-services="9200:https, 9300:https" \
-      io.openshift.tags="elasticsearch" \
-      architecture=x86_64 \
-      name="openshift3/elasticsearch"
+  io.k8s.display-name="Elasticsearch ${ES_VER}" \
+  io.openshift.expose-services="9200:https, 9300:https" \
+  io.openshift.tags="elasticsearch" \
+  architecture=x86_64 \
+  name="openshift3/elasticsearch"
 
 COPY elasticsearch.repo /etc/yum.repos.d/elasticsearch.repo
 # install the RPMs in a separate step so it can be cached
 RUN rpm --import https://artifacts.elastic.co/GPG-KEY-elasticsearch
 RUN yum install -y --setopt=tsflags=nodocs \
-                java-${JAVA_VER}-openjdk-headless \
-                elasticsearch-${ES_VER} && \
-    yum clean all
+  java-${JAVA_VER}-openjdk-headless \
+  elasticsearch-${ES_VER} && \
+  yum clean all
 
-COPY install.sh ${HOME}/
+#COPY install.sh ${HOME}/
 COPY config/* ${ES_PATH_CONF}/
-RUN ${HOME}/install.sh && \
-  rm ${HOME}/*
+#RUN ${HOME}/install.sh && \
+#  rm ${HOME}/*
+RUN rm ${HOME}/*
 
 WORKDIR ${HOME}
 USER 999
