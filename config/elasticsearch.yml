@@ -1,19 +1,21 @@
 cluster:
-  name: elasticsearch
+  name: ${ES_CLUSTER_NAME:"elasticsearch"}
 network:
   host: 0.0.0.0
 node:
   name: ${HOSTNAME}
+  master: ${NODE_MASTER:true}
+  data: ${NODE_DATA:false}
 discovery:
-  zen.ping.unicast.hosts: ${ES_CLUSTER_SERVICE}
-  zen.minimum_master_nodes: ${NODE_QUORUM}
+  zen:
+    ping.unicast.hosts: ${ES_CLUSTER_SERVICE}
+    minimum_master_nodes: ${NODE_QUORUM}
 path:
   data: /elasticsearch/persistent/elasticsearch/data
   logs: /elasticsearch/logs
 action.auto_create_index: .monitoring*,.watches,.triggered_watches,.watcher-history*,.ml*
-
+bootstrap.memory_lock: "false"
 xpack:
   monitoring:
     elasticsearch.collection.enabled: "true"
-    collection.enabled: true
-
+    collection.enabled: "true"
