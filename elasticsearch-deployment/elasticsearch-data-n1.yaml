@@ -1,0 +1,114 @@
+apiVersion: v1
+kind: DeploymentConfig
+metadata:
+  name: sma-es-data-n1
+#  namespace: sam-uat
+#  selfLink: /oapi/v1/namespaces/sam-uat/deploymentconfigs/sma-es-data-n11
+#  uid: 1ad0f078-d639-11e8-9bc3-001a4a160178
+#  resourceVersion: '117333354'
+#  generation: 50
+#  creationTimestamp: '2018-10-22T20:28:58Z'
+  # annotations:
+  #   kubectl.kubernetes.io/last-applied-configuration: >-
+  #     {"kind":"DeploymentConfig","apiVersion":"v1","metadata":{"name":"sma-es-data-n11","generation":1,"creationTimestamp":null},"spec":{"strategy":{"type":"Rolling","rollingParams":{"updatePeriodSeconds":1,"intervalSeconds":1,"timeoutSeconds":600,"maxUnavailable":"25%","maxSurge":"25%"},"resources":{},"activeDeadlineSeconds":21600},"triggers":null,"replicas":1,"test":false,"selector":{"component":"elasticsearch","role":"data"},"template":{"metadata":{"creationTimestamp":null,"labels":{"component":"elasticsearch","role":"data"}},"spec":{"volumes":[{"name":"es-data","hostPath":{"path":"/usr/local/elasticsearch/data"}},{"name":"es-config","configMap":{"name":"sma-elasticsearch","defaultMode":420}},{"name":"es-backup-data","persistentVolumeClaim":{"claimName":"uat-elastic-backup-claim"}}],"containers":[{"name":"sma-es-data","image":"docker.io/rhsma/sma-es-node@sha256:0cff7dfdc1a3ab9b8ba55aa773523718dd2043859deb7b47865c2cfb2aa69d4c","ports":[{"containerPort":9300,"protocol":"TCP"}],"env":[{"name":"ES_JAVA_OPTS","value":"-Xms16g
+  #     -Xmx16g"},{"name":"CLUSTER_NAME","value":"es-prod-cluster"},{"name":"NODE_NAME","valueFrom":{"fieldRef":{"apiVersion":"v1","fieldPath":"metadata.name"}}},{"name":"NODE_MASTER","value":"false"},{"name":"NODE_DATA","value":"true"},{"name":"NODE_INGEST","value":"true"},{"name":"MAX_LOCAL_STORAGE_NODES","value":"1"},{"name":"NETWORK_HOST","value":"_site_"},{"name":"PATH_REPO","value":"/opt/elasticsearch/backup"},{"name":"REINDEX_REMOTE_HOSTS","value":"sma-elasticsearch:9200"},{"name":"XPACK_SECURITY_ENABLED","value":"false"},{"name":"XPACK_MONITORING_ENABLED","value":"false"},{"name":"MONITORING_URL","value":"http://elasticsearch-monitoring:9200"},{"name":"MONITORING_USER","value":"remote_monitor"},{"name":"MONITORING_PASSWORD","value":"changeme"},{"name":"HTTP_ENABLE","value":"true"},{"name":"HTTP_CORS_ENABLE","value":"true"},{"name":"DISCOVERY_SERVICE","value":"elasticsearch-discovery"},{"name":"NUMBER_OF_MASTERS"}],"resources":{"limits":{"memory":"28Gi"},"requests":{"memory":"14Gi"}},"volumeMounts":[{"name":"es-data","mountPath":"/usr/share/elasticsearch/data"},{"name":"es-config","readOnly":true,"mountPath":"/usr/share/elasticsearch/config/elasticsearch.yml","subPath":"elasticsearch.yml"},{"name":"es-backup-data","mountPath":"/opt/elasticsearch/backup"}],"terminationMessagePath":"/dev/termination-log","imagePullPolicy":"Always","securityContext":{"privileged":true}}],"restartPolicy":"Always","terminationGracePeriodSeconds":30,"dnsPolicy":"ClusterFirst","nodeSelector":{"nodenumber":"11"},"serviceAccountName":"elasticsearch","serviceAccount":"elasticsearch","securityContext":{}}}},"status":{"latestVersion":0,"observedGeneration":0,"replicas":0,"updatedReplicas":0,"availableReplicas":0,"unavailableReplicas":0}}
+spec:
+  strategy:
+    type: Rolling
+  triggers:
+    - type: ConfigChange
+  replicas: 1
+# selector:
+#    component: elasticsearch
+#    role: data
+  template:
+#    metadata:
+#      labels:
+#        component: elasticsearch
+#        role: data
+    spec:
+      volumes:
+        - name: es-data
+          hostPath:
+            path: /usr/local/elasticsearch/data
+        - name: es-config
+          configMap:
+            name: sma-elasticsearch
+            defaultMode: 420
+        - name: es-backup-data
+          persistentVolumeClaim:
+            claimName: prod-elastic-backup-claim
+      containers:
+        - name: sma-es-data
+          image: >-
+              docker.io/rhsma/sma-es-node@sha256:0cff7dfdc1a3ab9b8ba55aa773523718dd2043859deb7b47865c2cfb2aa69d4c
+          ports:
+            - containerPort: 9300
+              protocol: TCP
+          env:
+            - name: ES_JAVA_OPTS
+              value: '-Xms16g -Xmx16g'
+            - name: CLUSTER_NAME
+              value: es-prod-cluster
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.name
+            - name: NODE_MASTER
+              value: 'false'
+            - name: NODE_DATA
+              value: 'true'
+            - name: NODE_INGEST
+              value: 'true'
+            - name: MAX_LOCAL_STORAGE_NODES
+              value: '1'
+            - name: NETWORK_HOST
+              value: _site_
+            - name: PATH_REPO
+              value: /opt/elasticsearch/backup
+            - name: REINDEX_REMOTE_HOSTS
+              value: 'elasticsearch:9200'
+            - name: XPACK_SECURITY_ENABLED
+              value: 'false'
+            - name: XPACK_MONITORING_ENABLED
+              value: 'false'
+            - name: MONITORING_URL
+              value: 'http://elasticsearch-monitoring:9200'
+            - name: MONITORING_USER
+              value: remote_monitor
+            - name: MONITORING_PASSWORD
+              value: changeme
+            - name: HTTP_ENABLE
+              value: 'true'
+            - name: HTTP_CORS_ENABLE
+              value: 'true'
+            - name: DISCOVERY_SERVICE
+              value: elasticsearch-discovery
+            - name: NUMBER_OF_MASTERS
+          resources:
+            limits:
+              memory: 28Gi
+            requests:
+              memory: 28Gi
+          volumeMounts:
+            - name: es-data
+              mountPath: /usr/share/elasticsearch/data
+            - name: es-config
+              readOnly: true
+              mountPath: /usr/share/elasticsearch/config/elasticsearch.yml
+              subPath: elasticsearch.yml
+            - name: es-backup-data
+              mountPath: /opt/elasticsearch/backup
+          terminationMessagePath: /dev/termination-log
+          imagePullPolicy: Always
+          securityContext:
+            privileged: true
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      nodeSelector:
+        nodenumber: '11'
+      # serviceAccountName: elasticsearch
+      # serviceAccount: elasticsearch
+      # securityContext: {}
