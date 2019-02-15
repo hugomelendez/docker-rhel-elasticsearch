@@ -1,21 +1,18 @@
 # Elasticsearch images for OpenShift
 
-
 Build image a partir de un Dockerfile
 
 ```bash
-alias oc=oc-3.5.5.8
+alias oc=oc-3.11.59
+oc login https://api-ocp.migraciones.cloud 
 # crear la imagen ES
-oc new-build https://github.com/hmelendez/docker-rhel-elasticsearch --strategy=docker --name=elasticsearch-rhel7-sma
+oc new-build https://github.com/hugomelendez/docker-rhel-elasticsearch --strategy=docker --name=elasticsearch-rhel7-sma
 # luego de esto queda creado un Build Config que se puede usar para buildear continuamenete
 
 # crear la app ES en base a esta nueva imagen
 oc new-app elasticsearch-rhel7-sma --name=elasticsearch
 
 ```
-
-
-
 
 
 

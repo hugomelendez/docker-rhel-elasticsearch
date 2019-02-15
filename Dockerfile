@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/rhel7:7.3
+FROM registry.access.redhat.com/rhel7:7.6
 
 MAINTAINER OpenShift Development <dev@lists.openshift.redhat.com>
 
