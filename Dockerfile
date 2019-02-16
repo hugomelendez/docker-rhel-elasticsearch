@@ -30,7 +30,9 @@ RUN rpm --import https://artifacts.elastic.co/GPG-KEY-elasticsearch
 RUN yum install -y --setopt=tsflags=nodocs \
   java-${JAVA_VER}-openjdk-headless \
   elasticsearch-${ES_VER} && \
-  yum clean all
+  yum clean all && \
+  sysctl -w vm.max_map_count=262144
+
 
 COPY install.sh ${HOME}/
 COPY config/* ${ES_PATH_CONF}/
