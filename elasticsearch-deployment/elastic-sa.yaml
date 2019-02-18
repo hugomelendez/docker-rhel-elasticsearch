@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: elasticsearch
+  labels:
+    app: elasticsearch
+  annotations:
+    description: "SA para ejecutar los pods de ElasticSearch"
