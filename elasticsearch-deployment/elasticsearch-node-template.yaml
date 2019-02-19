@@ -1,8 +1,7 @@
 apiVersion: v1
 kind: Template
 metadata:
-  creationTimestamp: null
-  name: elasticsearch-node-template.yaml
+  name: elasticsearch-node-template
 objects:
 - apiVersion: v1
   kind: DeploymentConfig
@@ -10,15 +9,16 @@ objects:
     annotations:
       openshift.io/generated-by: OpenShiftNewApp
     creationTimestamp: null
-    generation: 1
+    generation: 22
     labels:
       app: elasticsearch
-    name: elasticsearch
+    name: ${PARAM_ES_NODE_NAME}
   spec:
     replicas: 1
+    revisionHistoryLimit: 10
     selector:
       app: elasticsearch
-      deploymentconfig: elasticsearch
+      deploymentconfig: ${PARAM_ES_NODE_NAME}
     strategy:
       activeDeadlineSeconds: 21600
       resources: {}
@@ -32,24 +32,42 @@ objects:
     template:
       metadata:
         annotations:
-          openshift.io/generated-by: OpenShiftNewApp
-        creationTimestamp: null
         labels:
           app: elasticsearch
-          deploymentconfig: elasticsearch
+          role: ${PARAM_ES_NODE_ROLE}
+          deploymentconfig: ${PARAM_ES_NODE_NAME}
       spec:
+        affinity:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+              - matchExpressions:
+                - key: es-node
+                  operator: In
+                  values:
+                  - ${PARAM_ES_NODE_AFFINITY}
         containers:
         - env:
+          - name: ES_JAVA_OPTS
+            value: -Xms16G -Xmx16G -Dnetworkaddress.cache.ttl=1 -Djava.net.preferIPv4Stack=true
+              -XX:+UnlockDiagnosticVMOptions -XX:+PrintCompressedOopsMode -XX:ActiveProcessorCount=8
           - name: LOG_LEVEL
             value: INFO
+          - name: ES_CLUSTER_NAME
+            value: ${PARAM_ES_CLUSTER_NAME}
+          - name: ES_CLUSTER_SERVICE
+            value: ${PARAM_ES_CLUSTER_SVC_NAME}
+          - name: ES_DATA_PATH
+            value: /elasticsearch/data.1/
           - name: NODE_QUORUM
             value: "1"
-          - name: ES_CLUSTER_SERVICE
-            value: elasticsearch.es-test.svc
-          - name: ES_JAVA_OPTS
-            value: -Xms8g -Xmx8g -XX:+UnlockDiagnosticVMOptions -XX:+PrintCompressedOopsMode
-              -Dnetworkaddress.cache.ttl=1 -Djava.net.preferIPv4Stack=true
-          image: 172.30.112.51:5000/es-test/elasticsearch-rhel7-sma@sha256:035ec66faac5f54cfeaf5a8374ab8dc7edd0db0fc0c34cdc02344b0ce41f9348
+          - name: NODE_MASTER
+            value: ${PARAM_ES_IS_NODE_MASTER}
+          - name: NODE_DATA
+            value: ${PARAM_ES_IS_NODE_DATA}
+          - name: test
+            value: "2"
+          image: docker-registry.default.svc:5000/es-test/elasticsearch-rhel7-sma@sha256:39babc784f05b2785ac5db24dd07d9cea740080fbba81b1d7bcebf0777ce28aa
           imagePullPolicy: Always
           name: elasticsearch
           ports:
@@ -57,31 +75,24 @@ objects:
             protocol: TCP
           - containerPort: 9300
             protocol: TCP
-          readinessProbe:
-            failureThreshold: 3
-            httpGet:
-              path: /_cluster/health?local=true
-              port: 9200
-              scheme: HTTP
-            initialDelaySeconds: 5
-            periodSeconds: 10
-            successThreshold: 1
-            timeoutSeconds: 1
           resources: {}
           terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
           volumeMounts:
-          - mountPath: /usr/share/elasticsearch/data
-            name: vol-elastic-data
+          - mountPath: /elasticsearch/data.1
+            name: vol-elastic-data-1
         dnsPolicy: ClusterFirst
-        nodeSelector:
-          nodenumber: "11"
         restartPolicy: Always
+        schedulerName: default-scheduler
         securityContext: {}
+        serviceAccount: elasticsearch
+        serviceAccountName: elasticsearch
         terminationGracePeriodSeconds: 30
         volumes:
         - hostPath:
-            path: /usr/local/elasticsearch/data
-          name: vol-elastic-data
+            path: /usr/local/elasticsearch/data.1
+            type: ""
+          name: vol-elastic-data-1
     test: false
     triggers:
     - type: ConfigChange
@@ -91,8 +102,9 @@ objects:
         - elasticsearch
         from:
           kind: ImageStreamTag
-          name: elasticsearch-rhel7-sma:latest
+          name: elasticsearch-rhel7-sma:es654-rhel7
           namespace: es-test
+#        lastTriggeredImage: docker-registry.default.svc:5000/es-test/elasticsearch-rhel7-sma@sha256:39babc784f05b2785ac5db24dd07d9cea740080fbba81b1d7bcebf0777ce28aa
       type: ImageChange
   status:
     availableReplicas: 0
@@ -101,3 +113,40 @@ objects:
     replicas: 0
     unavailableReplicas: 0
     updatedReplicas: 0
+parameters:
+- description: ElasticSearch Node Number
+  displayName: ElasticSearch Node Number
+  name: PARAM_ES_NODE_NAME
+  value: "elasticsearch-data-01"
+  required: true
+- description: ElasticSearch Node Affinity
+  displayName: Node Label for affinity
+  name: PARAM_ES_NODE_AFFINITY
+  value: "elasticsearch-master"
+  required: true
+- description: ES Node is Master
+  displayName: ElasticSearch Node Master
+  name: PARAM_ES_IS_NODE_MASTER
+  value: "true"
+  required: true
+- description: "ES Node is Data?"
+  displayName: ElasticSearch Node Data
+  name: PARAM_ES_IS_NODE_DATA
+  value: "false"
+  required: true
+- description: "ES Node role"
+  displayName: ElasticSearch Node role, master XOR client
+  name: PARAM_ES_NODE_ROLE
+  value: "client"
+  required: true
+- description: ES Cluster Name
+  displayName: ElasticSearch cluster Name
+  name: PARAM_ES_CLUSTER_NAME
+  value: "elastic-sma"
+  required: true
+- description: ES API Service name
+  displayName: ElasticSearch API service Name
+  name: PARAM_ES_CLUSTER_SVC_NAME
+  value: "elasticsearch-cluster"
+  required: false
+
