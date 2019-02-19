@@ -104,7 +104,7 @@ objects:
           kind: ImageStreamTag
           name: elasticsearch-rhel7-sma:es654-rhel7
           namespace: es-test
-#        lastTriggeredImage: docker-registry.default.svc:5000/es-test/elasticsearch-rhel7-sma@sha256:39babc784f05b2785ac5db24dd07d9cea740080fbba81b1d7bcebf0777ce28aa
+        lastTriggeredImage: docker-registry.default.svc:5000/es-test/elasticsearch-rhel7-sma@sha256:39babc784f05b2785ac5db24dd07d9cea740080fbba81b1d7bcebf0777ce28aa
       type: ImageChange
   status:
     availableReplicas: 0
